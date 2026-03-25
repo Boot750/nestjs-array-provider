@@ -10,13 +10,17 @@ import { InjectionToken, Provider, Type } from '@nestjs/common';
  * // Define a token:
  * const PAYMENT_PROVIDERS = Symbol('PAYMENT_PROVIDERS');
  *
- * // In your module:
+ * // Auto-registers providers (use spread):
  * @Module({
  *   providers: [
- *     DirectProvider,
- *     HitPayProvider,
- *     arrayProvider<PaymentProvider>(PAYMENT_PROVIDERS, [DirectProvider, HitPayProvider]),
- *     PaymentProviderRegistry,
+ *     ...arrayProvider<PaymentProvider>(PAYMENT_PROVIDERS, [DirectProvider, HitPayProvider]),
+ *   ],
+ * })
+ *
+ * // Providers already registered elsewhere (no spread needed):
+ * @Module({
+ *   providers: [
+ *     arrayProvider<PaymentProvider>(PAYMENT_PROVIDERS, [DirectProvider, HitPayProvider], false),
  *   ],
  * })
  *
@@ -26,13 +30,19 @@ import { InjectionToken, Provider, Type } from '@nestjs/common';
  *   private readonly providers: PaymentProvider[],
  * ) {}
  */
+export function arrayProvider<T>(token: InjectionToken, providers: Type<T>[], registerProviders: true): Provider[];
+export function arrayProvider<T>(token: InjectionToken, providers: Type<T>[], registerProviders: false): Provider;
+export function arrayProvider<T>(token: InjectionToken, providers: Type<T>[]): Provider[];
 export function arrayProvider<T>(
   token: InjectionToken,
   providers: Type<T>[],
-): Provider {
-  return {
+  registerProviders: boolean = true,
+): Provider | Provider[] {
+  const factory: Provider = {
     provide: token,
     useFactory: (...instances: T[]) => instances,
     inject: providers,
   };
+
+  return registerProviders ? [...providers, factory] : factory;
 }

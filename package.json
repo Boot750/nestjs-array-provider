@@ -1,6 +1,6 @@
 {
   "name": "nestjs-array-provider",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Create NestJS providers that inject multiple services as an array. Useful for plugin/strategy patterns.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

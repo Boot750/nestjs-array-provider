@@ -16,12 +16,10 @@ import { arrayProvider } from 'nestjs-array-provider';
 // 1. Define a token
 const PAYMENT_PROVIDERS = Symbol('PAYMENT_PROVIDERS');
 
-// 2. Register in your module
+// 2. Register in your module (providers are auto-registered)
 @Module({
   providers: [
-    DirectProvider,
-    HitPayProvider,
-    arrayProvider<PaymentProvider>(PAYMENT_PROVIDERS, [
+    ...arrayProvider<PaymentProvider>(PAYMENT_PROVIDERS, [
       DirectProvider,
       HitPayProvider,
     ]),
@@ -45,16 +43,31 @@ export class PaymentService {
 }
 ```
 
+If your providers are already registered elsewhere (e.g. in another module), pass `false` as the third argument:
+
+```typescript
+@Module({
+  imports: [ProvidersModule],
+  providers: [
+    arrayProvider<PaymentProvider>(PAYMENT_PROVIDERS, [DirectProvider, HitPayProvider], false),
+    PaymentService,
+  ],
+})
+export class PaymentModule {}
+```
+
 ## API
 
-### `arrayProvider<T>(token, providers): Provider`
+### `arrayProvider<T>(token, providers, registerProviders?)`
 
-| Parameter   | Type              | Description                                      |
-| ----------- | ----------------- | ------------------------------------------------ |
-| `token`     | `InjectionToken`  | The injection token to provide the array under    |
-| `providers` | `Type<T>[]`       | Array of classes to collect into the injected array |
+| Parameter            | Type             | Default | Description                                          |
+| -------------------- | ---------------- | ------- | ---------------------------------------------------- |
+| `token`              | `InjectionToken` |         | The injection token to provide the array under        |
+| `providers`          | `Type<T>[]`      |         | Array of classes to collect into the injected array   |
+| `registerProviders`  | `boolean`        | `true`  | Whether to also register the individual providers     |
 
-Returns a NestJS `Provider` that resolves each class and provides them as a `T[]`.
+Returns `Provider[]` when `registerProviders` is `true` (default) — spread into your providers array.
+Returns a single `Provider` when `registerProviders` is `false`.
 
 ## Why?
 
